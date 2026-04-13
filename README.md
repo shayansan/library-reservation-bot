@@ -24,6 +24,10 @@ The bot runs automatically at a scheduled time, opens the reservation website, f
 * Make sure your system is running and connected to the internet
 * Do not share your credentials publicly
 
+# Demo
+![photo_2_2026-04-13_23-22-48](https://github.com/user-attachments/assets/10cdf93a-1941-4e0e-a5c7-458e6716fd80)
+![photo_1_2026-04-13_23-22-48](https://github.com/user-attachments/assets/17258e37-3b95-4da4-a37f-32376cce25ad)
+
 ## 📦 Setup
 
 1. Clone the repository
