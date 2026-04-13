@@ -48,8 +48,7 @@ Instead of changing my routine, I decided to automate the process.
 3. Install dependencies:
    pip install -r requirements.txt
 
-4. Create a `.env` file based on `.env.example` and add your credentials
+4. Create a `.env` file based on `.env.example`
 
 5. Run the bot:
    python main.py
-
