@@ -19,10 +19,6 @@ This project automates the process of reserving seats in my university library.
 
 The bot runs automatically at a scheduled time, opens the reservation website, fills in the required information, submits the form, and verifies the result.
 
-## 📸 Demo
-
-(Add your screenshot here)
-
 ## ⚠️ Notes
 
 * Make sure your system is running and connected to the internet
