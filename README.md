@@ -1,5 +1,6 @@
 # Library Reservation Bot
 
+A Python-based automation bot that reserves library seats automatically at a specific time, eliminating the need for manual booking.
 This project automates the process of reserving seats in my university library.
 
 ## 🚀 Features
