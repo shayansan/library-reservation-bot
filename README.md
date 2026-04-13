@@ -28,11 +28,27 @@ The bot runs automatically at a scheduled time, opens the reservation website, f
 ![photo_2_2026-04-13_23-22-48](https://github.com/user-attachments/assets/10cdf93a-1941-4e0e-a5c7-458e6716fd80)
 ![photo_1_2026-04-13_23-22-48](https://github.com/user-attachments/assets/17258e37-3b95-4da4-a37f-32376cce25ad)
 
-## 📦 Setup
+## 🧠 Problem
 
-1. Clone the repository
-2. Install dependencies:
+Reserving a seat in my university library required waking up early and booking exactly at a specific time, usually a few days in advance.
+
+Since I usually wake up later, this became a daily frustration. Missing the reservation window meant no available seats for the day.
+
+Instead of changing my routine, I decided to automate the process.
+
+## ▶️ How to run
+
+1. Clone the repository:
+   git clone https://github.com/shayansan/library-reservation-bot.git
+
+2. Go to the project folder:
+   cd library-reservation-bot
+
+3. Install dependencies:
    pip install -r requirements.txt
-3. Add your credentials in `.env`
-4. Run the bot:
+
+4. Create a `.env` file based on `.env.example` and add your credentials
+
+5. Run the bot:
    python main.py
+
