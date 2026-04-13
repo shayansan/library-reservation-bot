@@ -9,6 +9,7 @@ This project automates the process of reserving seats in my university library.
 * Fills in user details (email, student ID, etc.)
 * Checks if reservation was successful
 * Sends Telegram notification with result
+* Supports multiple users and parallel reservations
 
 ## 🛠 Tech Stack
 
