@@ -205,3 +205,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Library reservation bot local data
+config/users.json
+logs/
+screenshots/
+.browser-profile/
+
