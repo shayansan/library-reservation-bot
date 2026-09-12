@@ -212,3 +212,7 @@ logs/
 screenshots/
 .browser-profile/
 
+
+# Runtime diagnostics
+artifacts/
+
