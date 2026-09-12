@@ -50,26 +50,15 @@ def create_page(
     return page
 
 
-def notify_result(
+def send_notification_safely(
     settings: Settings,
-    user_config: UserReservationConfig,
-    period: ReservationPeriod,
-    result: SubmissionResult,
+    message: str,
 ) -> None:
     if not telegram_is_configured(
         settings.telegram_token,
         settings.telegram_chat_id,
     ):
         return
-
-    user = user_config.user
-
-    message = (
-        "Library reservation result\n"
-        f"User: {user.name}\n"
-        f"Period: {period.value}\n"
-        f"Status: {result.status.value}"
-    )
 
     try:
         send_telegram_message(
@@ -83,6 +72,47 @@ def notify_result(
             "\nTelegram notification failed:",
             exc,
         )
+
+
+def notify_captcha_ready(
+    settings: Settings,
+    user_config: UserReservationConfig,
+    period: ReservationPeriod,
+) -> None:
+    user = user_config.user
+
+    message = (
+        "Library reservation CAPTCHA ready\n"
+        f"User: {user.name}\n"
+        f"Period: {period.value}\n"
+        "Open the computer and enter the CAPTCHA."
+    )
+
+    send_notification_safely(
+        settings,
+        message,
+    )
+
+
+def notify_result(
+    settings: Settings,
+    user_config: UserReservationConfig,
+    period: ReservationPeriod,
+    result: SubmissionResult,
+) -> None:
+    user = user_config.user
+
+    message = (
+        "Library reservation result\n"
+        f"User: {user.name}\n"
+        f"Period: {period.value}\n"
+        f"Status: {result.status.value}"
+    )
+
+    send_notification_safely(
+        settings,
+        message,
+    )
 
 
 def run_single_reservation(
@@ -181,6 +211,16 @@ def run_single_reservation(
             )
 
             return None
+
+        notify_captcha_ready(
+            settings,
+            user_config,
+            period,
+        )
+
+        print(
+            "\nWaiting for manual CAPTCHA..."
+        )
 
         wait_for_manual_captcha(
             page,
