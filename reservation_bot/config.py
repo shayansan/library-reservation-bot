@@ -41,6 +41,9 @@ class Settings:
     reservation_hour: int
     reservation_minute: int
 
+    dry_run: bool
+    allow_live_submission: bool
+
     telegram_token: str | None
     telegram_chat_id: str | None
 
@@ -60,10 +63,20 @@ def _get_bool(
 
     value = raw_value.strip().lower()
 
-    if value in {"1", "true", "yes", "on"}:
+    if value in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }:
         return True
 
-    if value in {"0", "false", "no", "off"}:
+    if value in {
+        "0",
+        "false",
+        "no",
+        "off",
+    }:
         return False
 
     raise ConfigurationError(
@@ -126,6 +139,14 @@ def load_settings() -> Settings:
         reservation_minute=_get_int(
             "RESERVATION_MINUTE",
             0,
+        ),
+        dry_run=_get_bool(
+            "DRY_RUN",
+            True,
+        ),
+        allow_live_submission=_get_bool(
+            "ALLOW_LIVE_SUBMISSION",
+            False,
         ),
         telegram_token=(
             os.getenv("TELEGRAM_TOKEN")
@@ -200,8 +221,14 @@ def load_users(
             )
 
         try:
-            name = str(item["name"]).strip()
-            email = str(item["email"]).strip()
+            name = str(
+                item["name"]
+            ).strip()
+
+            email = str(
+                item["email"]
+            ).strip()
+
             student_id = str(
                 item["student_id"]
             ).strip()
@@ -239,13 +266,18 @@ def load_users(
             ["morning"],
         )
 
-        if not isinstance(raw_periods, list):
+        if not isinstance(
+            raw_periods,
+            list,
+        ):
             raise ConfigurationError(
                 f"User #{index + 1} periods "
                 "must be a list."
             )
 
-        periods: list[ReservationPeriod] = []
+        periods: list[
+            ReservationPeriod
+        ] = []
 
         for raw_period in raw_periods:
             try:
@@ -259,7 +291,9 @@ def load_users(
                     f"invalid period: {raw_period!r}"
                 ) from exc
 
-            periods.append(period)
+            periods.append(
+                period
+            )
 
         if not periods:
             raise ConfigurationError(
