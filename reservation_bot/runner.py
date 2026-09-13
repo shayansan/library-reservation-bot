@@ -94,6 +94,47 @@ def notify_captcha_ready(
     )
 
 
+def notify_slot_unavailable(
+    settings: Settings,
+    user_config: UserReservationConfig,
+    period: ReservationPeriod,
+) -> None:
+    user = user_config.user
+
+    message = (
+        "Library reservation slot unavailable\n"
+        f"User: {user.name}\n"
+        f"Period: {period.value}"
+    )
+
+    send_notification_safely(
+        settings,
+        message,
+    )
+
+
+def notify_failure(
+    settings: Settings,
+    user_config: UserReservationConfig,
+    period: ReservationPeriod,
+    error: Exception,
+) -> None:
+    user = user_config.user
+
+    message = (
+        "Library reservation ERROR\n"
+        f"User: {user.name}\n"
+        f"Period: {period.value}\n"
+        f"Error: {type(error).__name__}\n"
+        f"Message: {str(error)[:300]}"
+    )
+
+    send_notification_safely(
+        settings,
+        message,
+    )
+
+
 def notify_result(
     settings: Settings,
     user_config: UserReservationConfig,
@@ -138,16 +179,18 @@ def run_single_reservation(
         period.value,
     )
 
-    browser = playwright.chromium.launch(
-        headless=False,
-    )
-
-    page = create_page(
-        browser,
-        settings,
-    )
+    browser: Browser | None = None
 
     try:
+        browser = playwright.chromium.launch(
+            headless=False,
+        )
+
+        page = create_page(
+            browser,
+            settings,
+        )
+
         print(
             "\nOpening reservation page..."
         )
@@ -164,6 +207,12 @@ def run_single_reservation(
         ):
             print(
                 "Requested period is not available."
+            )
+
+            notify_slot_unavailable(
+                settings,
+                user_config,
+                period,
             )
 
             return None
@@ -297,5 +346,35 @@ def run_single_reservation(
 
         return result
 
+    except Exception as exc:
+        print(
+            "\nRESERVATION ERROR"
+        )
+
+        print(
+            "Period:",
+            period.value,
+        )
+
+        print(
+            "Error type:",
+            type(exc).__name__,
+        )
+
+        print(
+            "Message:",
+            exc,
+        )
+
+        notify_failure(
+            settings,
+            user_config,
+            period,
+            exc,
+        )
+
+        return None
+
     finally:
-        browser.close()
+        if browser is not None:
+            browser.close()
