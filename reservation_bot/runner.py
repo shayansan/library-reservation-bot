@@ -85,7 +85,7 @@ def notify_captcha_ready(
         "Library reservation CAPTCHA ready\n"
         f"User: {user.name}\n"
         f"Period: {period.value}\n"
-        "Open the computer and enter the CAPTCHA."
+        "Enter the CAPTCHA manually in the open browser."
     )
 
     send_notification_safely(
@@ -233,17 +233,9 @@ def run_single_reservation(
             "\nCAPTCHA input detected."
         )
 
-        confirmation = input(
-            "Type SUBMIT to create "
-            "the reservation: "
+        print(
+            "Submitting automatically..."
         )
-
-        if confirmation != "SUBMIT":
-            print(
-                "Reservation cancelled."
-            )
-
-            return None
 
         result = submit_once_and_capture(
             page
