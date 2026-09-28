@@ -1,8 +1,8 @@
 from datetime import date, timedelta
 
 
-WEDNESDAY = 2
 THURSDAY = 3
+FRIDAY = 4
 
 
 class ScheduleError(RuntimeError):
@@ -13,21 +13,21 @@ def get_target_booking_date(
     today: date | None = None,
 ) -> date:
     """
-    Wednesday -> Saturday
-    Thursday  -> Sunday
+    Thursday -> Saturday
+    Friday   -> Sunday
     """
 
     current_date = today or date.today()
 
     weekday = current_date.weekday()
 
-    if weekday == WEDNESDAY:
-        return current_date + timedelta(days=3)
-
     if weekday == THURSDAY:
-        return current_date + timedelta(days=3)
+        return current_date + timedelta(days=2)
+
+    if weekday == FRIDAY:
+        return current_date + timedelta(days=2)
 
     raise ScheduleError(
         "Live reservation is allowed only "
-        "on Wednesday or Thursday."
+        "on Thursday or Friday."
     )
