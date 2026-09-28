@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Mario Rossi",
+    "email": "mario.rossi@studenti.unime.it",
+    "student_id": "123456",
+    "enabled": true,
+    "periods": [
+      "morning",
+      "afternoon"
+    ]
+  }
+]
