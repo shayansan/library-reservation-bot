@@ -8,6 +8,7 @@ from playwright.sync_api import (
 from reservation_bot.browser import (
     is_period_available,
     open_reservation_page,
+    select_calendar_date,
 )
 from reservation_bot.captcha import (
     wait_for_manual_captcha,
@@ -204,6 +205,16 @@ def run_single_reservation(
             page,
             settings.reservation_url,
             timeout_ms=settings.load_timeout_ms,
+        )
+
+        print(
+            "Selecting target calendar date:",
+            target_date.isoformat(),
+        )
+
+        select_calendar_date(
+            page,
+            target_date,
         )
 
         if not is_period_available(

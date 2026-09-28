@@ -93,6 +93,76 @@ def get_available_slots(
     return slots
 
 
+def get_calendar_date_selector(
+    target_date: date,
+) -> str:
+    """
+    Build a selector for exactly one calendar date.
+
+    jQuery UI uses zero-based months:
+    January = 0, ..., December = 11.
+    """
+
+    year = target_date.year
+    month = target_date.month - 1
+    day = target_date.day
+
+    return (
+        ".ui-datepicker-calendar "
+        f'td[data-year="{year}"]'
+        f'[data-month="{month}"] '
+        f'a[data-date="{day}"]'
+    )
+
+
+def select_calendar_date(
+    page: Page,
+    target_date: date,
+) -> None:
+    """
+    Select exactly the requested calendar date.
+
+    If the requested date is not currently offered by the site,
+    fail safely instead of selecting another date.
+    """
+
+    selector = get_calendar_date_selector(
+        target_date
+    )
+
+    calendar_date = page.locator(
+        selector
+    )
+
+    count = calendar_date.count()
+
+    if count == 0:
+        raise ReservationPageError(
+            "Target booking date is not available "
+            "in the calendar: "
+            f"{target_date.isoformat()}"
+        )
+
+    if count > 1:
+        raise ReservationPageError(
+            "Expected exactly one calendar entry "
+            f"for {target_date.isoformat()}, "
+            f"found {count}."
+        )
+
+    calendar_date.click()
+
+    expected_date = target_date.isoformat()
+
+    page.locator(
+        ".slotsCalendarfieldname1_1 "
+        f'a[d="{expected_date}"]'
+    ).first.wait_for(
+        state="attached",
+        timeout=10_000,
+    )
+
+
 def get_period_selector(
     period: ReservationPeriod,
     target_date: date,
