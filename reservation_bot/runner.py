@@ -1,3 +1,4 @@
+from datetime import date
 from playwright.sync_api import (
     Browser,
     Page,
@@ -161,6 +162,7 @@ def run_single_reservation(
     settings: Settings,
     user_config: UserReservationConfig,
     period: ReservationPeriod,
+    target_date: date,
 ) -> SubmissionResult | None:
 
     user = user_config.user
@@ -178,7 +180,10 @@ def run_single_reservation(
         "Period:",
         period.value,
     )
-
+    print(
+    "Target date:",
+    target_date.isoformat(),
+    )
     browser: Browser | None = None
 
     try:
@@ -202,8 +207,9 @@ def run_single_reservation(
         )
 
         if not is_period_available(
-            page,
-            period,
+        page,
+        period,
+        target_date,
         ):
             print(
                 "Requested period is not available."
@@ -218,10 +224,11 @@ def run_single_reservation(
             return None
 
         prepare_reservation(
-            page,
-            user,
-            period,
-        )
+    page,
+    user,
+    period,
+    target_date,
+)
 
         print(
             "\nForm prepared successfully."

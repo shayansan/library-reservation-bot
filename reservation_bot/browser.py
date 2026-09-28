@@ -1,3 +1,5 @@
+from datetime import date
+
 from playwright.sync_api import Page
 
 from reservation_bot.models import (
@@ -5,10 +7,8 @@ from reservation_bot.models import (
     Slot,
 )
 from reservation_bot.selectors import (
-    AFTERNOON_SLOT,
     AVAILABLE_SLOT,
     FORM,
-    MORNING_SLOT,
     SLOTS_CONTAINER,
 )
 
@@ -23,14 +23,6 @@ def open_reservation_page(
     *,
     timeout_ms: int = 45_000,
 ) -> None:
-    """
-    Open the UniME reservation page and wait until the booking
-    form and slot widget have been rendered.
-
-    This function does not click a slot and does not submit
-    any reservation.
-    """
-
     page.goto(
         reservation_url,
         wait_until="domcontentloaded",
@@ -48,22 +40,20 @@ def open_reservation_page(
     )
 
 
-def get_available_slots(page: Page) -> list[Slot]:
-    """
-    Read the slots that the website currently marks as available.
+def get_available_slots(
+    page: Page,
+) -> list[Slot]:
 
-    Only anchors inside `.availableslot` are accepted.
-    Used/unavailable slots are intentionally ignored.
-    """
-
-    locator = page.locator(AVAILABLE_SLOT)
+    locator = page.locator(
+        AVAILABLE_SLOT
+    )
 
     slots: list[Slot] = []
 
     for index in range(locator.count()):
         element = locator.nth(index)
 
-        date = element.get_attribute("d")
+        slot_date = element.get_attribute("d")
 
         h1 = element.get_attribute("h1")
         m1 = element.get_attribute("m1")
@@ -71,7 +61,7 @@ def get_available_slots(page: Page) -> list[Slot]:
         m2 = element.get_attribute("m2")
 
         attributes = {
-            "date": date,
+            "date": slot_date,
             "h1": h1,
             "m1": m1,
             "h2": h2,
@@ -90,37 +80,64 @@ def get_available_slots(page: Page) -> list[Slot]:
                 f"attributes: {', '.join(missing)}"
             )
 
-        slot = Slot(
-            date=date,
-            start_hour=int(h1),
-            start_minute=int(m1),
-            end_hour=int(h2),
-            end_minute=int(m2),
+        slots.append(
+            Slot(
+                date=slot_date,
+                start_hour=int(h1),
+                start_minute=int(m1),
+                end_hour=int(h2),
+                end_minute=int(m2),
+            )
         )
 
-        slots.append(slot)
-
     return slots
+
+
+def get_period_selector(
+    period: ReservationPeriod,
+    target_date: date,
+) -> str:
+
+    date_value = target_date.isoformat()
+
+    if period is ReservationPeriod.MORNING:
+        return (
+            ".slotsCalendarfieldname1_1 "
+            '.availableslot > a'
+            f'[d="{date_value}"]'
+            '[h1="8"]'
+            '[m1="30"]'
+            '[h2="14"]'
+            '[m2="0"]'
+        )
+
+    if period is ReservationPeriod.AFTERNOON:
+        return (
+            ".slotsCalendarfieldname1_1 "
+            '.availableslot > a'
+            f'[d="{date_value}"]'
+            '[h1="14"]'
+            '[m1="0"]'
+            '[h2="23"]'
+            '[m2="55"]'
+        )
+
+    raise ValueError(
+        f"Unsupported reservation period: {period}"
+    )
 
 
 def is_period_available(
     page: Page,
     period: ReservationPeriod,
+    target_date: date,
 ) -> bool:
-    """
-    Return True only if the requested reservation period is
-    currently represented by an available slot.
-    """
 
-    if period is ReservationPeriod.MORNING:
-        selector = MORNING_SLOT
+    selector = get_period_selector(
+        period,
+        target_date,
+    )
 
-    elif period is ReservationPeriod.AFTERNOON:
-        selector = AFTERNOON_SLOT
-
-    else:
-        raise ValueError(
-            f"Unsupported reservation period: {period}"
-        )
-
-    return page.locator(selector).count() > 0
+    return page.locator(
+        selector
+    ).count() > 0

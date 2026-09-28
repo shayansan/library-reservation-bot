@@ -7,10 +7,51 @@ from reservation_bot.config import (
 from reservation_bot.runner import (
     run_single_reservation,
 )
+from reservation_bot.schedule import (
+    ScheduleError,
+    get_target_booking_date,
+)
 
 
 def main() -> None:
     settings = load_settings()
+
+    print(
+        "\nLibrary Reservation Bot v2"
+    )
+
+    print(
+        "Dry run:",
+        settings.dry_run,
+    )
+
+    print(
+        "Live submission allowed:",
+        settings.allow_live_submission,
+    )
+
+    try:
+        target_date = get_target_booking_date()
+
+    except ScheduleError as exc:
+        print(
+            "\nSCHEDULE BLOCK"
+        )
+
+        print(
+            exc
+        )
+
+        print(
+            "No reservation workflow will run today."
+        )
+
+        return
+
+    print(
+        "Target booking date:",
+        target_date.isoformat(),
+    )
 
     user_configs = load_users(
         settings.users_file
@@ -30,22 +71,8 @@ def main() -> None:
         return
 
     print(
-        "\nLibrary Reservation Bot v2"
-    )
-
-    print(
         "Enabled users:",
         len(enabled_users),
-    )
-
-    print(
-        "Dry run:",
-        settings.dry_run,
-    )
-
-    print(
-        "Live submission allowed:",
-        settings.allow_live_submission,
     )
 
     with sync_playwright() as playwright:
@@ -56,6 +83,7 @@ def main() -> None:
                     settings,
                     user_config,
                     period,
+                    target_date,
                 )
 
 

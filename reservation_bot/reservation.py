@@ -1,15 +1,18 @@
+from datetime import date
+
 from playwright.sync_api import Page
 
+from reservation_bot.browser import (
+    get_period_selector,
+)
 from reservation_bot.models import (
     ReservationPeriod,
     User,
 )
 from reservation_bot.selectors import (
-    AFTERNOON_SLOT,
-    CAPTCHA_INPUT,
     CAPTCHA_IMAGE,
+    CAPTCHA_INPUT,
     EMAIL_INPUT,
-    MORNING_SLOT,
     NAME_INPUT,
     PRIVACY_CHECKBOX,
     STUDENT_ID_INPUT,
@@ -21,62 +24,76 @@ class ReservationPreparationError(RuntimeError):
     """Raised when the reservation form cannot be prepared safely."""
 
 
-def get_slot_selector(
-    period: ReservationPeriod,
-) -> str:
-    if period is ReservationPeriod.MORNING:
-        return MORNING_SLOT
-
-    if period is ReservationPeriod.AFTERNOON:
-        return AFTERNOON_SLOT
-
-    raise ValueError(
-        f"Unsupported reservation period: {period}"
-    )
-
-
 def select_available_slot(
     page: Page,
     period: ReservationPeriod,
+    target_date: date,
 ) -> None:
-    """
-    Select the requested period only if the website currently
-    marks it as available.
-    """
 
-    selector = get_slot_selector(period)
+    selector = get_period_selector(
+        period,
+        target_date,
+    )
 
-    slot = page.locator(selector)
+    slot = page.locator(
+        selector
+    )
 
-    if slot.count() == 0:
+    count = slot.count()
+
+    if count == 0:
         raise ReservationPreparationError(
-            f"{period.value} slot is not currently available."
+            f"{period.value} slot is not available "
+            f"for {target_date.isoformat()}."
         )
 
-    if slot.count() > 1:
+    if count > 1:
         raise ReservationPreparationError(
-            f"Expected one {period.value} slot, "
-            f"found {slot.count()}."
+            f"Expected exactly one {period.value} "
+            f"slot for {target_date.isoformat()}, "
+            f"found {count}."
+        )
+
+    actual_date = slot.get_attribute(
+        "d"
+    )
+
+    expected_date = target_date.isoformat()
+
+    if actual_date != expected_date:
+        raise ReservationPreparationError(
+            "Slot date safety check failed. "
+            f"Expected {expected_date}, "
+            f"got {actual_date!r}."
         )
 
     slot.click()
 
-    page.wait_for_timeout(500)
+    page.wait_for_timeout(
+        500
+    )
 
 
 def fill_user_information(
     page: Page,
     user: User,
 ) -> None:
-    """
-    Fill the user-specific reservation form fields.
-    """
 
-    page.locator(NAME_INPUT).fill(user.name)
+    page.locator(
+        NAME_INPUT
+    ).fill(
+        user.name
+    )
 
-    page.locator(EMAIL_INPUT).fill(user.email)
+    page.locator(
+        EMAIL_INPUT
+    ).fill(
+        user.email
+    )
 
-    page.locator(STUDENT_ID_INPUT).fill(
+    page.locator(
+        STUDENT_ID_INPUT
+    ).fill(
         user.student_id
     )
 
@@ -84,13 +101,14 @@ def fill_user_information(
 def accept_required_agreements(
     page: Page,
 ) -> None:
-    """
-    Check the required terms and privacy checkboxes.
-    """
 
-    terms = page.locator(TERMS_CHECKBOX)
+    terms = page.locator(
+        TERMS_CHECKBOX
+    )
 
-    privacy = page.locator(PRIVACY_CHECKBOX)
+    privacy = page.locator(
+        PRIVACY_CHECKBOX
+    )
 
     if not terms.is_checked():
         terms.check()
@@ -102,15 +120,14 @@ def accept_required_agreements(
 def verify_captcha_present(
     page: Page,
 ) -> None:
-    """
-    Verify that the CAPTCHA UI exists.
 
-    The CAPTCHA is not solved automatically.
-    """
+    captcha_image = page.locator(
+        CAPTCHA_IMAGE
+    )
 
-    captcha_image = page.locator(CAPTCHA_IMAGE)
-
-    captcha_input = page.locator(CAPTCHA_INPUT)
+    captcha_input = page.locator(
+        CAPTCHA_INPUT
+    )
 
     if captcha_image.count() != 1:
         raise ReservationPreparationError(
@@ -127,16 +144,13 @@ def prepare_reservation(
     page: Page,
     user: User,
     period: ReservationPeriod,
+    target_date: date,
 ) -> None:
-    """
-    Prepare a reservation up to the CAPTCHA step.
-
-    This function intentionally does NOT submit the form.
-    """
 
     select_available_slot(
         page,
         period,
+        target_date,
     )
 
     fill_user_information(
@@ -148,4 +162,6 @@ def prepare_reservation(
         page,
     )
 
-    verify_captcha_present(page)
+    verify_captcha_present(
+        page
+    )
